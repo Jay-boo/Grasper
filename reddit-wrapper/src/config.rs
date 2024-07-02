@@ -26,8 +26,6 @@ impl Config{
 impl fmt::Display for Config{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,"------ Config used :\nCLIENT_ID: {}\nUSER_AGENT: {}\nUSERNAME: {:?}\nAccess Token catch: {}\n--------------",self.client_id,self.user_agent,self.username,self.access_token.is_some())
-
-        
     }
 }
 

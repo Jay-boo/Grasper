@@ -28,7 +28,6 @@ services:
     command: |
       "
       # blocks until kafka is reachable
-      echo -e 'Reachable ??'
       kafka-topics --bootstrap-server kafka:29092 --list
 
       echo -e 'Creating kafka topics'
@@ -38,6 +37,7 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
       "
+
 
   kafdrop:
     image: obsidiandynamics/kafdrop:latest

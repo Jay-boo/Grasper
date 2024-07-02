@@ -6,16 +6,16 @@ mod url;
 
 
 
-use std::fmt::Write;
 use futures::StreamExt;
-use kafka::producer::{self, Producer, AsBytes};
 use lazy_static::lazy_static;
+use rdkafka::{producer::{self, BaseProducer, FutureProducer, FutureRecord}, ClientConfig};
 use reqwest::{header::{USER_AGENT, HeaderValue}, Client, Response};
 use redditClient::RedditClient;
 use dotenv::dotenv;
-use std::{env, time::Duration, collections::HashSet };
+use std::{env, time::{Duration, SystemTime}, collections::HashSet };
 use log::info;
-use crate::subreddit::response::PostData;
+use crate::subreddit::response::{PostData};
+use std::io::Write;
 
 
 lazy_static!(
@@ -29,11 +29,12 @@ lazy_static!(
 
 #[tokio::main]
 async fn main()-> Result<(),std::io::Error> {
-    env::set_var("RUST_LOG", "debug");
+    // env::set_var("RUST_LOG", "debug");
     // env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
     dotenv().ok();
     info!("Authenticating to Reddit");
+    log::info!("NOW :{}",chrono::Local::now().to_rfc3339());
     let mut reddit_client:RedditClient=RedditClient::new(&*USER_AGENT_NAME, &*CLIENT_ID, &*CLIENT_SECRET);
     let me:me::me::Me=reddit_client.login(&USER_NAME, &PASSWORD).await.unwrap();
     info!("{}",format!("Get subreddit: {} ","r/funny"));
@@ -41,18 +42,25 @@ async fn main()-> Result<(),std::io::Error> {
     let (mut stream_posts,join_handle)= rfunny.stream_items(Duration::new(10, 0),"Nothing".to_string(),None);
 
     let mut seen_posts:HashSet<String>= HashSet::new();
-    let mut producer=Producer::from_hosts(
-        vec!(KAFKA_HOST.to_string())
-        )
-        .with_ack_timeout(Duration::from_secs(1))
-        .with_required_acks(producer::RequiredAcks::One)
-        .create()
-        .unwrap();
-    let mut buf=String::with_capacity( 2);
+    // let mut producer=Producer::from_hosts(
+    //     vec!(KAFKA_HOST.to_string())
+    //     )
+    //     .with_ack_timeout(Duration::from_secs(1))
+    //     .with_required_acks(producer::RequiredAcks::One)
+    //     .create()
+    //     .unwrap();
+    let producer:&FutureProducer=&ClientConfig::new()
+        .set("bootstrap.servers", KAFKA_HOST.to_string())
+        .set("request.required.acks", "1")
+        .set("message.timeout.ms", "5000")
+        .set("request.timeout.ms","1000")
+        .create().unwrap();
+    //Documentation available here :https://github.com/confluentinc/librdkafka/blob/master/CONFIGURATION.md
 
 
     
 
+    info!(" Fetching post from {}",&rfunny.name);
     while let  Some(posts)=stream_posts.next().await{
         let posts= match posts {
             Ok(p) => p,
@@ -60,7 +68,6 @@ async fn main()-> Result<(),std::io::Error> {
                 log::error!("{}",err);
                 continue;
             }
-                ,
         };
         for post in posts.data.children{
             let post_data:PostData=post.data;
@@ -68,14 +75,19 @@ async fn main()-> Result<(),std::io::Error> {
                 log::debug!("Duplicate post skipped : {}",&post_data.permalink);
                 continue;
             }
+            log::debug!("PostData send to Kafka broker :{} ",&post_data.permalink);
+            let json_post_data=serde_json::to_string(&post_data).unwrap();
+            let record:FutureRecord<'_, String, String>=FutureRecord::to("r-funny-reddit")
+                .payload(&json_post_data)
+                .timestamp(
+                    chrono::Local::now().timestamp_millis()
+                );
+            let _ =producer.send(record,Duration::from_secs(0)).await;
+            
             seen_posts.insert(post_data.permalink);
-            log::info!("New post fetch from {}",&rfunny.name);
-            producer.send(&producer::Record::from_value("r-funny-reddit", post_data.selftext.as_bytes()) );
 
         };
     }
-
-
     Ok(())
 
 }

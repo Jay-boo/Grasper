@@ -71,7 +71,7 @@ impl RedditClient {
             Err(_e)=>return Err(io::Error::new(io::ErrorKind::NotConnected, format!("Authentication request failed to {}  \nwith{:#?}!",url,form)))
         };
         if response.status()==200{
-            println!("code query 200");
+            log::debug!("code query 200");
             let auth_data:AuthResponse=match response.json::<AuthResponse>().await{
                 Ok(data)=>data,
                 Err(_e)=> return Err(io::Error::new(io::ErrorKind::NotConnected, format!("Not found user :{}",username)))
@@ -96,7 +96,7 @@ impl RedditClient {
             self.client=Client::builder()
                 .default_headers(headers)
                 .build().unwrap();
-            println!("{}",self.config);
+            log::debug!("{}",self.config);
             return Ok(Me::new(&self.config, &self.client))
 
         }else{

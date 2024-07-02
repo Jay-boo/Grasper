@@ -1,23 +1,17 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-// #[derive(Deserialize,Debug)]
-// pub struct SubredditResponse{
-//     pub data:SubredditData,
-//     kind:String
-// }
 
 #[derive(Deserialize,Debug,Clone)]
 pub struct SubredditData{
     pub description:String
 }
 
-
 #[derive(Deserialize,Debug,Clone)]
 pub struct FeedData<T>{
     pub children:Vec<T>
 }
 
-#[derive(Deserialize,Debug,Clone)]
+#[derive(Deserialize,Debug,Clone,Serialize)]
 pub struct PostData{
     pub pinned:bool,
     pub selftext:String,
@@ -33,5 +27,6 @@ pub struct BasicStruct<K,D>{
     pub data:D
 }
 
-
 pub type FeedResponse=BasicStruct<String,FeedData<BasicStruct<String,PostData>>>;
+
+
