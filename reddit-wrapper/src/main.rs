@@ -77,7 +77,7 @@ async fn main()-> Result<(),std::io::Error> {
             }
             log::debug!("PostData send to Kafka broker :{} ",&post_data.permalink);
             let json_post_data=serde_json::to_string(&post_data).unwrap();
-            let record:FutureRecord<'_, String, String>=FutureRecord::to("r-funny-reddit")
+            let record:FutureRecord<'_, String, String>=FutureRecord::to("r-funny")
                 .payload(&json_post_data)
                 .timestamp(
                     chrono::Local::now().timestamp_millis()
