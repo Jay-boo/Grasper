@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "kafka-setup.fullname" . }}
+  name: {{ include "insight-hoot-chart.fullname" . }}
   labels:
-    {{- include "kafka-setup.labels" . | nindent 4 }}
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "kafka-setup.fullname" . }}
+    name: {{ include "insight-hoot-chart.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:
