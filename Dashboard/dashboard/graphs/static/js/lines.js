@@ -172,14 +172,25 @@ function setupDateRangeSlider(data) {
         const selectedEndDate = uniqueDates[values[1]];
         document.getElementById('minDateLabel').textContent = selectedStartDate.toISOString().split('T')[0];
         document.getElementById('maxDateLabel').textContent = selectedEndDate.toISOString().split('T')[0];
+
+        console.log('Selected Start Date:', selectedStartDate);
+        console.log('Selected End Date:', selectedEndDate);
+
         filterDataByDateRange(selectedStartDate, selectedEndDate, data);
     });
 }
 
 function filterDataByDateRange(startDate, endDate, data) {
+    const adjustedEndDate = new Date(endDate);
+    adjustedEndDate.setHours(23, 59, 59, 999);
+
+    console.log('Filtering data from:', startDate, 'to:', adjustedEndDate);
+
     const filteredData = data.filter(item => {
         const itemDate = new Date(item.date);
-        return itemDate >= startDate && itemDate <= endDate;
+        return itemDate >= startDate && itemDate <= adjustedEndDate;
     });
+
+    console.log('Filtered Data:', filteredData);
     renderLineChart(filteredData, document.getElementById('DropdownLine').value);
 }
