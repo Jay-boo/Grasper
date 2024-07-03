@@ -51,7 +51,7 @@ jobs:
               fi
             fi 
           else
-            if [${{ endsWith(github.base_ref,"feature-redditWrapper")  ]
+            if [${{ endsWith(github.base_ref,'feature-redditWrapper')  ]
             then
               echo "tag=main-pr" >> $GITHUB_ENV
             else
