@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insight Hoot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/static/insighthootlogo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/ionicons/css/ionicons.css">
+    <link rel="stylesheet" type='text/css' href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="http://d3js.org/d3.v5.js"></script>
+    <style>
+        #resetButton {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+<!-- Navbar -->
+    <nav id="navbar">
+      <ul class="navbar-items flexbox-col">
+        <li class="navbar-logo flexbox-left">
+          <a class="navbar-item-inner flexbox">
+            <img src="/static/insighthootlogo.png" alt="" width="50" height="50">
+          </a>
+          <a class="navbar-item-inner flexblox-left">
+          <span class="link-text">Insight Hoot</span>
+          </a>
+        </li>
+       <li class="navbar-item flexbox-left">
+       <form class="navbar-item flexbox-left" id="home-form" action="/" method="GET">
+        
+        <!-- CSRF token field if required by your backend -->
+        <!-- <input type="hidden" name="_token" value="your_csrf_token_here"> -->
+        <a href="#" onclick="document.getElementById('home-form').submit();" class="navbar-item-inner flexbox-left">
+          <div class="navbar-item-inner-icon-wrapper flexbox">
+            <i class="fas fa-home"></i> <!-- Use appropriate icon for logout -->
+          </div>
+          <span class="link-text">Home</span>
+        </a>
+       </form>
+
+        
+        <li class="navbar-item flexbox-left">
+      <form class="navbar-item flexbox-left" id="login-form" action="/accounts/microsoft/login/?process=login" method="GET">
+        
+        <!-- CSRF token field if required by your backend -->
+        <!-- <input type="hidden" name="_token" value="your_csrf_token_here"> -->
+        <a href="#" onclick="document.getElementById('login-form').submit();" class="navbar-item-inner flexbox-left">
+          <div class="navbar-item-inner-icon-wrapper flexbox">
+            <i class="fas fa-sign-in-alt"></i> <!-- Use appropriate icon for logout -->
+          </div>
+          <span class="link-text">Login</span>
+        </a>
+      </form>
+        </li>
+        
+
+        
+      </ul>
+</nav>
+    </header>
+    <main id="main">
+      <div id="content-left-ns" class="flexbox-col-left-ns">
+      
+      
+      </div>
+      <div id="content-left" class="flexbox-col-left">
+      
+      
+      </div>
+      <div id="content-standard" class="flexbox">
+      
+    <div style="margin-right: 20px;">
+        <label for="Dropdown"></label>
+        <select id="Dropdown">
+            <option value="Tout" selected>Tout</option>
+            <option value="Les 7 derniers jours">Les 7 derniers jours</option>
+            <option value="Le dernier mois">Le dernier mois</option>
+            <option value="Les 3 derniers mois">Les 3 derniers mois</option>
+            <option value="Les 6 derniers mois">Les 6 derniers mois</option>
+        </select>
+    </div>
+<div id="content-right-dash" class="flexbox-col-right" style="position: relative;">
+
+<canvas class="flexbox-col-right" id="myPieChart" width="400" height="200"></canvas>
+<button id="resetButton">Reset</button>
+<script src="/static/js/donut.js"></script>
+</div>
+    <div style="margin-right: 20px;">
+        <label for="DropdownLine"></label>
+        <select id="DropdownLine">
+            <option value="by_months" selected>By Months</option>
+            <option value="by_weeks">By Weeks</option>
+            <option value="by_days">By Days</option>
+        </select>
+    </div>
+<div id="content-right-dash-line" class="flexbox-col-right" style="position: relative;">
+
+<canvas class="flexbox-col-right" id="myLineChart" width="600" height="300"></canvas>
+
+<script src="/static/js/lines.js"></script>
+</div>
+
+
+      </div>
+      <div id="content-right" class="flexbox-col-right">
+      
+      
+      </div>
+    </main>     
+</body>
+</html>
