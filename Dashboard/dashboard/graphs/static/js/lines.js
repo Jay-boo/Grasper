@@ -135,7 +135,6 @@ document.getElementById('DropdownLine').addEventListener('change', (event) => {
     fetchDataBasedOnSelectionLine(event.target.value);
 });
 
-// Fetch data from the endpoint and render the chart initially with default period
 fetch('/graphs/messages_with_tags/')
     .then(response => response.json())
     .then(data => {

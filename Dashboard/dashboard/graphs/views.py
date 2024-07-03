@@ -61,8 +61,7 @@ def messages_with_tags(request):
                 Q(messagetags__tagid__theme=theme)
             ).distinct()
 
-        serializer = MessageSerializer(messages, many=True)
+        serializer = MessageSerializer(messages, many=True, context={'request': request})
         return JsonResponse(serializer.data, safe=False)
     except Exception as e:
         return HttpResponseServerError(render(request, 'graphs/error.html', {'error': str(e)}))
-
