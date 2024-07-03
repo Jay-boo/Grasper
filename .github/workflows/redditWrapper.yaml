@@ -46,7 +46,7 @@ jobs:
               then
                 echo "tag=main" >> $GITHUB_ENV
               else
-                BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper//')
+                BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper-//')
                 echo "tag=${BRANCH_SUFFIX}" >> $GITHUB_ENV 
               fi
             fi 
