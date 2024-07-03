@@ -37,15 +37,22 @@ jobs:
         id: tag
         run: |
           if [[${{ !startsWith(github.event_name,'pull')}} ]];then
-
-            BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper//')
-            echo "tag=r${BRANCH_SUFFIX}" >> $GITHUB_ENV 
+            if [["${{github.ref}}"==  "refs/heads/master" ]];then
+              echo "tag=latest" >> $GITHUB_ENV 
+            else
+              if [["${{ github.ref }}" == "refs/heads/feature-redditWrapper"]];then
+                echo "tag=main" >>$GITHUB_ENV
+              else
+                BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper//')
+                echo "tag=${BRANCH_SUFFIX}" >> $GITHUB_ENV 
+              fi
+            fi 
           else
             if [["${{ github.base_ref }}" == "feature-redditWrapper"]];then
-              echo "tag=latest" >>$GITHUB_ENV
+              echo "tag=main-pr" >>$GITHUB_ENV
             else
               BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper//')
-              echo "tag=r${BRANCH_SUFFIX}" >> $GITHUB_ENV 
+              echo "tag=${BRANCH_SUFFIX}-pr" >> $GITHUB_ENV 
             
             fi 
           fi
