@@ -53,6 +53,12 @@ services:
     image: "reddit-wrapper-stream"
     environment:
       KAFKA_HOST: "kafka:9092"
+      CLIENT_ID: "${CLIENT_ID}"
+      CLIENT_SECRET: "${CLIENT_SECRET}"
+      USER_NAME: "${USER_NAME}"
+      PASSWORD: "${PASSWORD}"
+      USER_AGENT_NAME: "${USER_AGENT_NAME}"
+
     build: .
     depends_on:
       - init-kafka
