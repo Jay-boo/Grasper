@@ -127,6 +127,10 @@ function fetchDataBasedOnSelectionLine(selection) {
         .then(response => response.json())
         .then(data => {
             renderLineChart(data, selection);
+
+            const dateRangeSlider = document.getElementById('dateRangeSlider');
+            const initialPositions = [0, dateRangeSlider.noUiSlider.options.range.max];
+            dateRangeSlider.noUiSlider.set(initialPositions);
         })
         .catch(error => console.error('Error fetching data:', error));
 }
