@@ -12,7 +12,7 @@ on:
 jobs:
 
   deploy-reddit-wrapper:
-    if: ${{ !startWith(github.event_name,'pull')}}
+    if: ${{ !startsWith(github.event_name,'pull')}}
     uses: ./.github/workflows/redditWrapper.yaml
     secrets: inherit
     permissions:

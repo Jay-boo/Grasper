@@ -36,7 +36,7 @@ jobs:
       - name: Determine Docker tag
         id: tag
         run: |
-            if [[ "${{ github.ref }}" == "refs/heads/feature-redditWrapper" && ${{ !startWith(github.event_name,'pull')}} ]]; then
+            if [[ "${{ github.ref }}" == "refs/heads/feature-redditWrapper" && ${{ !startsWith(github.event_name,'pull')}} ]]; then
               echo "tag=latest" >> $GITHUB_ENV
             else
               BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper-//')
