@@ -13,6 +13,8 @@ pub struct FeedData<T>{
 
 #[derive(Deserialize,Debug,Clone,Serialize)]
 pub struct PostData{
+    pub subreddit:String,
+    pub title:String,
     pub pinned:bool,
     pub selftext:String,
     pub url:String,

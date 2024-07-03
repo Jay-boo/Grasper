@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reddit
+  labels:
+    app: reddit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: reddit
+  template:
+    metadata:
+      labels:
+        name: reddit
+    spec:
+      containers:
+        - name: reddit
+          image: jamdatafab/insighthoot-dashboard:%IMAGE_TAG%
+          imagePullPolicy: Always
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-tag
+  labels:
+    app: reddit-config
+data:
+  IMAGE_TAG: prouting
+
+
+---
+# START Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: reddit-service
+  labels:
+    app: reddit-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80 #port that the service exposes
+      targetPort: 8000 #port that the app is receiving requests from via the pod
+  selector:
+    name: reddit
+# END SERVICE

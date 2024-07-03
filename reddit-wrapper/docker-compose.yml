@@ -32,7 +32,7 @@ services:
 
       echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic r-funny --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic my-topic-2 --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic  r-rust --replication-factor 1 --partitions 1
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
@@ -48,4 +48,19 @@ services:
       JVM_OPTS: "-Xms32M -Xmx64M"
     depends_on:
       - kafka
+
+  redditwrapper:
+    image: "reddit-wrapper-stream"
+    environment:
+      KAFKA_HOST: "kafka:9092"
+      CLIENT_ID: "${CLIENT_ID}"
+      CLIENT_SECRET: "${CLIENT_SECRET}"
+      USER_NAME: "${USER_NAME}"
+      PASSWORD: "${PASSWORD}"
+      USER_AGENT_NAME: "${USER_AGENT_NAME}"
+
+    build: .
+    depends_on:
+      - init-kafka
+
 

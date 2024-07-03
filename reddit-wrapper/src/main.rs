@@ -6,7 +6,7 @@ mod url;
 
 
 
-use futures::StreamExt;
+use futures::{StreamExt, stream};
 use lazy_static::lazy_static;
 use rdkafka::{producer::{self, BaseProducer, FutureProducer, FutureRecord}, ClientConfig};
 use reqwest::{header::{USER_AGENT, HeaderValue}, Client, Response};
@@ -29,26 +29,13 @@ lazy_static!(
 
 #[tokio::main]
 async fn main()-> Result<(),std::io::Error> {
-    // env::set_var("RUST_LOG", "debug");
+    env::set_var("RUST_LOG", "debug");
     // env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
     dotenv().ok();
+    info!("KAFKA_HOST :{}",KAFKA_HOST.to_string());
     info!("Authenticating to Reddit");
-    log::info!("NOW :{}",chrono::Local::now().to_rfc3339());
-    let mut reddit_client:RedditClient=RedditClient::new(&*USER_AGENT_NAME, &*CLIENT_ID, &*CLIENT_SECRET);
-    let me:me::me::Me=reddit_client.login(&USER_NAME, &PASSWORD).await.unwrap();
-    info!("{}",format!("Get subreddit: {} ","r/funny"));
-    let rfunny:subreddit::subreddit::Subreddit=me.get_subreddit("r/funny",Some(1),subreddit::feedoptions::FeedFilter::Hot).await;
-    let (mut stream_posts,join_handle)= rfunny.stream_items(Duration::new(10, 0),"Nothing".to_string(),None);
-
     let mut seen_posts:HashSet<String>= HashSet::new();
-    // let mut producer=Producer::from_hosts(
-    //     vec!(KAFKA_HOST.to_string())
-    //     )
-    //     .with_ack_timeout(Duration::from_secs(1))
-    //     .with_required_acks(producer::RequiredAcks::One)
-    //     .create()
-    //     .unwrap();
     let producer:&FutureProducer=&ClientConfig::new()
         .set("bootstrap.servers", KAFKA_HOST.to_string())
         .set("request.required.acks", "1")
@@ -56,12 +43,29 @@ async fn main()-> Result<(),std::io::Error> {
         .set("request.timeout.ms","1000")
         .create().unwrap();
     //Documentation available here :https://github.com/confluentinc/librdkafka/blob/master/CONFIGURATION.md
+    let stream1 = futures::stream::iter(vec![1, 2, 3]);
 
+
+
+
+
+
+
+    let mut reddit_client:RedditClient=RedditClient::new(&*USER_AGENT_NAME, &*CLIENT_ID, &*CLIENT_SECRET);
+    let me:me::me::Me=reddit_client.login(&USER_NAME, &PASSWORD).await.unwrap();
+    info!("{}",format!("Get subreddit: {} ","r/funny"));
+    let rfunny:subreddit::subreddit::Subreddit=me.get_subreddit("r/funny",Some(1),subreddit::feedoptions::FeedFilter::Hot).await;
+    let (stream_posts_rfunny,join_handle)= rfunny.stream_items(Duration::new(10, 0),"Nothing".to_string(),None);
+    let rrust:subreddit::subreddit::Subreddit=me.get_subreddit("r/rust",Some(1),subreddit::feedoptions::FeedFilter::Hot).await;
+    let (stream_posts_rrust,join_handle)= rrust.stream_items(Duration::new(10, 0),"Nothing".to_string(),None);
+
+
+    let mut combined_stream=futures::stream::select_all(vec![stream_posts_rrust,stream_posts_rfunny]);
 
     
 
-    info!(" Fetching post from {}",&rfunny.name);
-    while let  Some(posts)=stream_posts.next().await{
+    info!(" Fetching post from multiple subreddit {},{}",&rfunny.name,&rrust.name);
+    while let  Some(posts)=combined_stream.next().await{
         let posts= match posts {
             Ok(p) => p,
             Err(err) => {
@@ -76,8 +80,9 @@ async fn main()-> Result<(),std::io::Error> {
                 continue;
             }
             log::debug!("PostData send to Kafka broker :{} ",&post_data.permalink);
+            let topic_name:&str=&format!("r-{}",post_data.subreddit).to_string();
             let json_post_data=serde_json::to_string(&post_data).unwrap();
-            let record:FutureRecord<'_, String, String>=FutureRecord::to("r-funny")
+            let record:FutureRecord<'_, String, String>=FutureRecord::to(topic_name)
                 .payload(&json_post_data)
                 .timestamp(
                     chrono::Local::now().timestamp_millis()
