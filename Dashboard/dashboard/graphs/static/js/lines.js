@@ -149,22 +149,37 @@ function setupDateRangeSlider(data) {
     uniqueDates.sort((a, b) => a - b);
 
     const dateRangeSlider = document.getElementById('dateRangeSlider');
-    dateRangeSlider.min = 0;
-    dateRangeSlider.max = uniqueDates.length - 1;
-    dateRangeSlider.value = 0;
+    noUiSlider.create(dateRangeSlider, {
+        start: [0, uniqueDates.length - 1],
+        connect: true,
+        range: {
+            'min': 0,
+            'max': uniqueDates.length - 1
+        },
+        step: 1,
+        tooltips: [true, true],
+        format: {
+            to: value => Math.round(value),
+            from: value => Math.round(value)
+        }
+    });
 
     document.getElementById('minDateLabel').textContent = uniqueDates[0].toISOString().split('T')[0];
     document.getElementById('maxDateLabel').textContent = uniqueDates[uniqueDates.length - 1].toISOString().split('T')[0];
 
-    dateRangeSlider.addEventListener('input', (event) => {
-        const selectedIndex = parseInt(event.target.value);
-        const selectedDate = uniqueDates[selectedIndex];
-        document.getElementById('minDateLabel').textContent = selectedDate.toISOString().split('T')[0];
-        filterDataByDate(selectedDate, data);
+    dateRangeSlider.noUiSlider.on('update', (values, handle) => {
+        const selectedStartDate = uniqueDates[values[0]];
+        const selectedEndDate = uniqueDates[values[1]];
+        document.getElementById('minDateLabel').textContent = selectedStartDate.toISOString().split('T')[0];
+        document.getElementById('maxDateLabel').textContent = selectedEndDate.toISOString().split('T')[0];
+        filterDataByDateRange(selectedStartDate, selectedEndDate, data);
     });
 }
 
-function filterDataByDate(selectedDate, data) {
-    const filteredData = data.filter(item => new Date(item.date) >= selectedDate);
+function filterDataByDateRange(startDate, endDate, data) {
+    const filteredData = data.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= startDate && itemDate <= endDate;
+    });
     renderLineChart(filteredData, document.getElementById('DropdownLine').value);
 }

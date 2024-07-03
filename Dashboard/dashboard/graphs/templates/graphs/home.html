@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block content-standard%}
+{% block content-standard %}
     <div style="margin-right: 20px;">
         <label for="Dropdown"></label>
         <select id="Dropdown">
@@ -27,11 +27,13 @@
     </div>
     <div>
         <label for="dateRangeSlider">Select Date Range:</label>
-        <input type="range" id="dateRangeSlider" name="dateRange" min="0" max="100" step="1" value="0">
+        <div id="dateRangeSlider"></div>
         <span id="minDateLabel"></span> - <span id="maxDateLabel"></span>
     </div>
     <div id="content-right-dash-line" class="flexbox-col-right" style="position: relative;">
         <canvas class="flexbox-col-right" id="myLineChart" width="600" height="300"></canvas>
         <script src="{% static 'js/lines.js' %}"></script>
     </div>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.0/nouislider.min.js"></script>
 {% endblock content-standard %}
