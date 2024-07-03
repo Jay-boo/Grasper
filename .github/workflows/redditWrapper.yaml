@@ -49,7 +49,7 @@ jobs:
             fi 
           else
             if [["${{ github.base_ref }}" == "feature-redditWrapper"]];then
-              echo "tag=main-pr" >>$GITHUB_ENV
+              echo "tag=main-pr" >> $GITHUB_ENV
             else
               BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper//')
               echo "tag=${BRANCH_SUFFIX}-pr" >> $GITHUB_ENV 
