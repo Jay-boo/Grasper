@@ -20,4 +20,3 @@ serde_with = "3.8.2"
 rdkafka = "0.36.2"
 chrono = "0.4"
 colored = "2.0"
-

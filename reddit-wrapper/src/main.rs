@@ -29,10 +29,11 @@ lazy_static!(
 
 #[tokio::main]
 async fn main()-> Result<(),std::io::Error> {
-    // env::set_var("RUST_LOG", "debug");
+    env::set_var("RUST_LOG", "debug");
     // env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
     dotenv().ok();
+    info!("KAFKA_HOST :{}",KAFKA_HOST.to_string());
     info!("Authenticating to Reddit");
     let mut seen_posts:HashSet<String>= HashSet::new();
     let producer:&FutureProducer=&ClientConfig::new()
