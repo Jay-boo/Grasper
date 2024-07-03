@@ -41,7 +41,7 @@ jobs:
             BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper//')
             echo "tag=r${BRANCH_SUFFIX}" >> $GITHUB_ENV 
           else
-            if [["${{ github.base_ref }}" == "refs/heads/feature-redditWrapper"]];then
+            if [["${{ github.base_ref }}" == "feature-redditWrapper"]];then
               echo "tag=latest" >>$GITHUB_ENV
             else
               BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-redditWrapper//')
