@@ -10,6 +10,19 @@ on:
     branches:
       - 'feature-redditWrapper-**'
 jobs:
+
+  reddit-wrapper-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: redditwrapper build
+        run: cargo build
+      - name: redditwrapper test
+        run: cargo test -- --nocapture
+
+      
+
   reddit-wrapper-deploy:
     name: Push Docker image to Docker hub
     runs-on: ubuntu-latest
