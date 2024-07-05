@@ -4,17 +4,17 @@ metadata:
   name: {{ .Release.Name }}-kafka-ui-deployment
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.psql.labels.app }}
+    app: kafka-ui
   # namespace: mstore
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.psql.labels.app }}
+      app: kafka-ui
   template:
     metadata:
       labels:
-        app: {{ .Values.psql.labels.app }}
+        app: kafka-ui
     spec:
       containers:
       - name: kafka-ui

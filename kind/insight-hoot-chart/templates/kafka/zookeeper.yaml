@@ -4,16 +4,16 @@ metadata:
   name: {{ .Release.Name }}-zookeeper-deployment
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4}}
-    app: {{ .Values.kafka.labels.app }}
+    app: zookeeper
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.kafka.labels.app }}
+      app: zookeeper
   template:
     metadata:
       labels:
-        app: {{ .Values.kafka.labels.app }}
+        app: zookeeper
     spec:
       containers:
       - name: zookeeper
@@ -36,7 +36,7 @@ metadata:
     app: {{ .Values.kafka.labels.app }}
 spec:
   selector:
-    app: {{ .Values.kafka.labels.app }}
+    app: zookeeper
   ports:
     - protocol: TCP
       port: {{ .Values.kafka.Zookeeper.ContainerPort }}

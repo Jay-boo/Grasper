@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}-rss-topics-config
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.psql.labels.app }}
+    app: {{ .Values.kafka.labels.app }}
 data:
   rss_topics.json: {{ .Values.kafka.rss_json | toPrettyJson }}
 
@@ -17,7 +17,7 @@ metadata:
     kompose.version: 1.32.0 (765fde254)
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.psql.labels.app }}
+    app: {{ .Values.kafka.labels.app }}
     io.kompose.service: kafka-connect
   name: {{ .Release.Name }}-kafka-connect
 spec:
@@ -37,7 +37,7 @@ metadata:
     kompose.version: 1.32.0 (765fde254)
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.psql.labels.app }}
+    app: {{ .Values.kafka.labels.app }}
     io.kompose.service: kafka-connect
   name: {{ .Release.Name }}-kafka-connect
 spec:
@@ -51,7 +51,7 @@ spec:
         kompose.cmd: kompose convert -f dockercompose.yaml
         kompose.version: 1.32.0 (765fde254)
       labels:
-        app: {{ .Values.psql.labels.app }}
+        app: {{ .Values.kafka.labels.app }}
         io.kompose.network/komposedir-default: "true"
         io.kompose.service: kafka-connect
     spec:
@@ -107,7 +107,7 @@ spec:
             - name: CLASSPATH
               value: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.2.1.jar
             - name: CONNECT_BOOTSTRAP_SERVERS
-              value: kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
+              value: {{ .Release.Name }}-kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
             - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
               value: "1"
             - name: CONNECT_CONFIG_STORAGE_TOPIC
