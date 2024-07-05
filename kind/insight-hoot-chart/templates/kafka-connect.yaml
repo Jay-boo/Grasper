@@ -1,34 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: rss-topics-config
+  name: {{ .Release.Name }}-rss-topics-config
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{ .Values.psql.labels.app }}
 data:
-  rss_topics.json: |
-    {
-      "stackoverflow": "https://stackoverflow.blog/feed",
-      "developpez": "https://cloud-computing.developpez.com/rss.php",
-      "4sysops": "https://4sysops.com/feed/",
-      "adamtheautomator": "https://adamtheautomator.com/feed/",
-      "macmule": "https://macmule.com/feed/",
-      "web3isgoinggreat": "https://www.web3isgoinggreat.com/feed",
-      "thezvi": "https://thezvi.substack.com/feed",
-      "zdnet": [
-        "https://www.zdnet.com/topic/artificial-intelligence/rss.xml",
-        "https://www.zdnet.com/topic/cloud/rss.xml",
-        "https://www.zdnet.com/topic/digital-transformation/rss.xml"
-      ],
-      "databricks": "https://www.databricks.com/feed",
-      "techtoday": "https://techtoday.co/category/tech-news/feed/",
-      "reddittech": "https://www.reddit.com/r/technology/top.rss?t=day",
-      "slashdot": "http://rss.slashdot.org/Slashdot/slashdotMain",
-      "theverge": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-      "techcrunch": "https://techcrunch.com/feed/",
-      "theguardian": "https://www.theguardian.com/us/technology/rss",
-      "arstechnica": "https://feeds.arstechnica.com/arstechnica/technology-lab",
-      "wsj": "https://feeds.a.dj.com/rss/RSSWSJD.xml",
-      "ft": "https://www.ft.com/technology?format=rss",
-      "dbta": "https://feeds.feedburner.com/DBTA-Articles"
-    }
+  rss_topics.json: {{ .Values.kafka.rss_json | toPrettyJson }}
+
 ---
 apiVersion: v1
 kind: Service
@@ -37,13 +16,15 @@ metadata:
     kompose.cmd: kompose convert -f dockercompose.yaml
     kompose.version: 1.32.0 (765fde254)
   labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{ .Values.psql.labels.app }}
     io.kompose.service: kafka-connect
-  name: kafka-connect
+  name: {{ .Release.Name }}-kafka-connect
 spec:
   ports:
-    - name: "{{ .Values.KafkaConnectPort }}"
-      port: {{ .Values.KafkaConnectPort }}
-      targetPort: {{ .Values.KafkaConnectPort }}
+    - name: "{{ .Values.kafka.Kafka.ContainerPort }}"
+      port: {{ .Values.kafka.Kafka.ContainerPort }}
+      targetPort: {{ .Values.kafka.Kafka.ContainerPort }}
   selector:
     io.kompose.service: kafka-connect
 
@@ -55,8 +36,10 @@ metadata:
     kompose.cmd: kompose convert -f dockercompose.yaml
     kompose.version: 1.32.0 (765fde254)
   labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{ .Values.psql.labels.app }}
     io.kompose.service: kafka-connect
-  name: kafka-connect
+  name: {{ .Release.Name }}-kafka-connect
 spec:
   replicas: 1
   selector:
@@ -68,6 +51,7 @@ spec:
         kompose.cmd: kompose convert -f dockercompose.yaml
         kompose.version: 1.32.0 (765fde254)
       labels:
+        app: {{ .Values.psql.labels.app }}
         io.kompose.network/komposedir-default: "true"
         io.kompose.service: kafka-connect
     spec:
@@ -81,7 +65,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: rss-topics-config
+            name: {{ .Release.Name }}-rss-topics-config
       containers:
         - args:
             - bash
@@ -107,7 +91,7 @@ spec:
                   echo "$$key"
                   echo "$$value"
                   curl -i -X POST -H "Accept:application/json" \
-                      -H "Content-Type:application/json" http://localhost:{{ .Values.KafkaConnectPort }}/connectors/ \
+                      -H "Content-Type:application/json" http://localhost:{{ .Values.kafka.Kafka.ContainerPort }}/connectors/ \
                       -d '{
                     "name": "source-rss-'"$$key"'-src",
                     "config": {
@@ -123,7 +107,7 @@ spec:
             - name: CLASSPATH
               value: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.2.1.jar
             - name: CONNECT_BOOTSTRAP_SERVERS
-              value: kafka-service:{{ .Values.KafkaContainerPort }}
+              value: kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
             - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
               value: "1"
             - name: CONNECT_CONFIG_STORAGE_TOPIC
@@ -153,7 +137,7 @@ spec:
             - name: CONNECT_REST_ADVERTISED_HOST_NAME
               value: kafka-connect
             - name: CONNECT_REST_PORT
-              value: "{{ .Values.KafkaConnectPort }}"
+              value: "{{ .Values.kafka.Kafka.ContainerPort }}"
             - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
               value: "1"
             - name: CONNECT_STATUS_STORAGE_TOPIC
@@ -163,8 +147,8 @@ spec:
           image: confluentinc/cp-kafka-connect:5.2.1 
           name: kafka-connect
           ports:
-            - containerPort: {{ .Values.KafkaConnectPort }}
-              hostPort: {{ .Values.KafkaConnectPort }}
+            - containerPort: {{ .Values.kafka.Kafka.ContainerPort }}
+              hostPort: {{ .Values.kafka.Kafka.ContainerPort }}
               protocol: TCP
           volumeMounts:
             - name: config-volume

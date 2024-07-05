@@ -1,19 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kafka-ui-deployment
+  name: {{ .Release.Name }}-kafka-ui-deployment
   labels:
-    app: kafka-ui
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{ .Values.psql.labels.app }}
   # namespace: mstore
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kafka-ui
+      app: {{ .Values.psql.labels.app }}
   template:
     metadata:
       labels:
-        app: kafka-ui
+        app: {{ .Values.psql.labels.app }}
     spec:
       containers:
       - name: kafka-ui
@@ -22,7 +23,7 @@ spec:
         - name: KAFKA_CLUSTERS_0_NAME
           value: "K8 Kafka Cluster"
         - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
-          value: kafka-service:{{ .Values.KafkaContainerPort }}
+          value: kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
         imagePullPolicy: Always
         resources:
           requests:
@@ -32,18 +33,18 @@ spec:
             memory: "1024Mi"
             cpu: "1000m"
         ports:
-        - containerPort: {{ .Values.KafkaUIPort }}
+        - containerPort: {{ .Values.kafka.KafkaUI.Port }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: kafka-ui-service
+  name: {{ .Release.Name }}-kafka-ui-service
 spec:
   selector:
     app: kafka-ui
   type: NodePort
   ports:
     - protocol: TCP
-      port: {{ .Values.KafkaUIPort }}
-      targetPort: {{ .Values.KafkaUIPort }}
+      port: {{ .Values.kafka.KafkaUI.Port }}
+      targetPort: {{ .Values.kafka.KafkaUI.Port }}
       nodePort: 31006

@@ -106,7 +106,43 @@ tolerations: []
 
 affinity: {}
 
-KafkaContainerPort: 9092 
-ZookeeperContainerPort: 2181
-KafkaUIPort: 8080
-KafkaConnectPort: 8083
+kafka:
+  labels:
+    app: kafka
+  Kafka:
+    ContainerPort: 9092
+
+  Zookeeper:
+    ContainerPort: 2181
+
+  KafkaUI:
+    Port: 8080
+      
+  KafkaConnect:
+    Port: 8083
+    rss_json: |
+      {
+        "stackoverflow": "https://stackoverflow.blog/feed",
+        "developpez": "https://cloud-computing.developpez.com/rss.php",
+        "4sysops": "https://4sysops.com/feed/",
+        "adamtheautomator": "https://adamtheautomator.com/feed/",
+        "macmule": "https://macmule.com/feed/",
+        "web3isgoinggreat": "https://www.web3isgoinggreat.com/feed",
+        "thezvi": "https://thezvi.substack.com/feed",
+        "zdnet": [
+          "https://www.zdnet.com/topic/artificial-intelligence/rss.xml",
+          "https://www.zdnet.com/topic/cloud/rss.xml",
+          "https://www.zdnet.com/topic/digital-transformation/rss.xml"
+        ],
+        "databricks": "https://www.databricks.com/feed",
+        "techtoday": "https://techtoday.co/category/tech-news/feed/",
+        "reddittech": "https://www.reddit.com/r/technology/top.rss?t=day",
+        "slashdot": "http://rss.slashdot.org/Slashdot/slashdotMain",
+        "theverge": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+        "techcrunch": "https://techcrunch.com/feed/",
+        "theguardian": "https://www.theguardian.com/us/technology/rss",
+        "arstechnica": "https://feeds.arstechnica.com/arstechnica/technology-lab",
+        "wsj": "https://feeds.a.dj.com/rss/RSSWSJD.xml",
+        "ft": "https://www.ft.com/technology?format=rss",
+        "dbta": "https://feeds.feedburner.com/DBTA-Articles"
+      }

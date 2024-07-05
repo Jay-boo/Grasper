@@ -3,31 +3,32 @@ apiVersion: apps/v1
 metadata:
   name: {{ .Release.Name }}-kafka-deployment
   labels:
-    app: kafka
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{ .Values.kafka.labels.app }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kafka
+      app: {{ .Values.kafka.labels.app }}
   template:
     metadata:
       labels:
-        app: kafka
+        app: {{ .Values.kafka.labels.app }}
     spec:
       containers:
       - name: broker
         image: confluentinc/cp-kafka:7.0.1
         ports:
-        - containerPort: {{ .Values.KafkaContainerPort }}
+        - containerPort: {{ .Values.kafka.Kafka.ContainerPort }}
         env:
         - name: KAFKA_BROKER_ID
           value: "1"
         - name: KAFKA_ZOOKEEPER_CONNECT
-          value: 'zookeeper-service:{{ .Values.ZookeeperContainerPort }}'
+          value: 'zookeeper-service:{{ .Values.kafka.Zookeeper.ContainerPort }}'
         - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
           value: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
         - name: KAFKA_ADVERTISED_LISTENERS
-          value: PLAINTEXT://:29092,PLAINTEXT_INTERNAL://kafka-service.default.svc.cluster.local:{{ .Values.KafkaContainerPort }}
+          value: PLAINTEXT://:29092,PLAINTEXT_INTERNAL://kafka-service.default.svc.cluster.local:{{ .Values.kafka.Kafka.ContainerPort }}
         - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
           value: "1"
         - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
@@ -40,11 +41,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kafka-service
+  name: {{ .Release.Name }}-kafka-service
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{ .Values.kafka.labels.app }}
 spec:
   selector:
-    app: kafka
+    app: {{ .Values.kafka.labels.app }}
   ports:
     - protocol: TCP
-      port: {{ .Values.KafkaContainerPort }}
-      targetPort: {{ .Values.KafkaContainerPort }}
+      port: {{ .Values.kafka.Kafka.ContainerPort }}
+      targetPort: {{ .Values.kafka.Kafka.ContainerPort }}
