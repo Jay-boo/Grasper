@@ -1,25 +1,25 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: {{ .Release.Name }}-kafka-deployment
+  name: kafka-deployment
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.kafka.labels.app }}
+    app: kafka
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.kafka.labels.app }}
+      app: kafka
   template:
     metadata:
       labels:
-        app: {{ .Values.kafka.labels.app }}
+        app: kafka
     spec:
       containers:
       - name: broker
         image: confluentinc/cp-kafka:7.0.1
         ports:
-        - containerPort: {{ .Values.kafka.Kafka.ContainerPort }}
+        - containerPort: {{ .Values.kafka.Kafka.ContainerPort }} 
         env:
         - name: KAFKA_BROKER_ID
           value: "1"
@@ -41,13 +41,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-kafka-service
+  name: kafka-service
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.kafka.labels.app }}
 spec:
   selector:
-    app: {{ .Values.kafka.labels.app }}
+    app: kafka
   ports:
     - protocol: TCP
       port: {{ .Values.kafka.Kafka.ContainerPort }}

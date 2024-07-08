@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-zookeeper-deployment
+  name: zookeeper-deployment
   labels:
-    {{- include "insight-hoot-chart.labels" . | nindent 4}}
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
     app: zookeeper
 spec:
   replicas: 1
@@ -19,7 +19,7 @@ spec:
       - name: zookeeper
         image: confluentinc/cp-zookeeper:7.0.1
         ports:
-        - containerPort: {{ .Values.kafka.Zookeeper.ContainerPort }} 
+        - containerPort: {{ .Values.kafka.Zookeeper.ContainerPort }}
         env:
         - name: ZOOKEEPER_CLIENT_PORT
           value: "{{ .Values.kafka.Zookeeper.ContainerPort }}"
@@ -30,10 +30,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-zookeeper-service
+  name: zookeeper-service
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.kafka.labels.app }}
 spec:
   selector:
     app: zookeeper

@@ -1,12 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-rss-topics-config
+  name: rss-topics-config
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.kafka.labels.app }}
 data:
-  rss_topics.json: {{ .Values.kafka.rss_json | toPrettyJson }}
+  rss_topics.json: {{ .Values.kafka.KafkaConnect.rss_json | toPrettyJson }}
 
 ---
 apiVersion: v1
@@ -17,14 +16,13 @@ metadata:
     kompose.version: 1.32.0 (765fde254)
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.kafka.labels.app }}
     io.kompose.service: kafka-connect
-  name: {{ .Release.Name }}-kafka-connect
+  name: kafka-connect
 spec:
   ports:
-    - name: "{{ .Values.kafka.Kafka.ContainerPort }}"
-      port: {{ .Values.kafka.Kafka.ContainerPort }}
-      targetPort: {{ .Values.kafka.Kafka.ContainerPort }}
+    - name: "{{ .Values.kafka.KafkaConnect.Port }}"
+      port: {{ .Values.kafka.KafkaConnect.Port }}
+      targetPort: {{ .Values.kafka.KafkaConnect.Port }}
   selector:
     io.kompose.service: kafka-connect
 
@@ -37,9 +35,8 @@ metadata:
     kompose.version: 1.32.0 (765fde254)
   labels:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
-    app: {{ .Values.kafka.labels.app }}
     io.kompose.service: kafka-connect
-  name: {{ .Release.Name }}-kafka-connect
+  name: kafka-connect
 spec:
   replicas: 1
   selector:
@@ -51,7 +48,6 @@ spec:
         kompose.cmd: kompose convert -f dockercompose.yaml
         kompose.version: 1.32.0 (765fde254)
       labels:
-        app: {{ .Values.kafka.labels.app }}
         io.kompose.network/komposedir-default: "true"
         io.kompose.service: kafka-connect
     spec:
@@ -65,7 +61,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Release.Name }}-rss-topics-config
+            name: rss-topics-config
       containers:
         - args:
             - bash
@@ -91,7 +87,7 @@ spec:
                   echo "$$key"
                   echo "$$value"
                   curl -i -X POST -H "Accept:application/json" \
-                      -H "Content-Type:application/json" http://localhost:{{ .Values.kafka.Kafka.ContainerPort }}/connectors/ \
+                      -H "Content-Type:application/json" http://localhost:{{ .Values.kafka.KafkaConnect.Port }}/connectors/ \
                       -d '{
                     "name": "source-rss-'"$$key"'-src",
                     "config": {
@@ -107,7 +103,7 @@ spec:
             - name: CLASSPATH
               value: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.2.1.jar
             - name: CONNECT_BOOTSTRAP_SERVERS
-              value: {{ .Release.Name }}-kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
+              value: kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
             - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
               value: "1"
             - name: CONNECT_CONFIG_STORAGE_TOPIC
@@ -137,7 +133,7 @@ spec:
             - name: CONNECT_REST_ADVERTISED_HOST_NAME
               value: kafka-connect
             - name: CONNECT_REST_PORT
-              value: "{{ .Values.kafka.Kafka.ContainerPort }}"
+              value: "{{ .Values.kafka.KafkaConnect.Port }}"
             - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
               value: "1"
             - name: CONNECT_STATUS_STORAGE_TOPIC
@@ -147,8 +143,8 @@ spec:
           image: confluentinc/cp-kafka-connect:5.2.1 
           name: kafka-connect
           ports:
-            - containerPort: {{ .Values.kafka.Kafka.ContainerPort }}
-              hostPort: {{ .Values.kafka.Kafka.ContainerPort }}
+            - containerPort: {{ .Values.kafka.KafkaConnect.Port }}
+              hostPort: {{ .Values.kafka.KafkaConnect.Port }}
               protocol: TCP
           volumeMounts:
             - name: config-volume
