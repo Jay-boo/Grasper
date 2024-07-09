@@ -22,6 +22,12 @@ jobs:
           cargo build
       - name: redditwrapper test
         run: |
+          echo "USER_NAME=${{secrets.USER_NAME}}" >> $GITHUB_ENV
+          echo "USER_AGENT_NAME=${{secrets.USER_AGENT_NAME}}" >> $GITHUB_ENV
+          echo "CLIENT_ID=${{secrets.CLIENT_ID}}" >> $GITHUB_ENV
+          echo "CLIENT_SECRET=${{secrets.CLIENT_SECRET}}" >> $GITHUB_ENV
+          echo "PASSWORD=${{secrets.PASSWORD}}" >> $GITHUB_ENV
+          echo "KAFKA_HOST=${{secrets.KAFKA_HOST}}" >> $GITHUB_ENV
           cd ./reddit-wrapper/
           RUST_LOG=info cargo test -- --nocapture
 
