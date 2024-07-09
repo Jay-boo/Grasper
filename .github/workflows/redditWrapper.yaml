@@ -16,13 +16,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: pwd
+      - name: redditwrapper build
         run: |
-          cd ./reddit-wrapper
+          cd ./reddit-wrapper/
           pwd
           ls
-      - name: redditwrapper build
-        run: cargo build
+          cargo build
       - name: redditwrapper test
         run: RUST_LOG=info cargo test -- --nocapture
 
