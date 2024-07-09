@@ -121,7 +121,7 @@ mod tests{
         let _ = env_logger::try_init();
         info!("Test : Default Reddit client using credentials");
         println!("Authentication test");
-        info!(" ENV VAR {:#?}",env::var("USER_NAME"));
+        info!(" ENV VAR {:#?}",std::env::var("USER_NAME"));
         dotenv().ok();
         let url:&str="https://www.reddit.com/api/v1/access_token";
         let form = [
