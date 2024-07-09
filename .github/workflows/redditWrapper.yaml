@@ -19,11 +19,11 @@ jobs:
       - name: redditwrapper build
         run: |
           cd ./reddit-wrapper/
-          pwd
-          ls
           cargo build
       - name: redditwrapper test
-        run: RUST_LOG=info cargo test -- --nocapture
+        run: |
+          cd ./reddit-wrapper/
+          RUST_LOG=info cargo test -- --nocapture
 
       
 
