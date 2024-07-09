@@ -43,7 +43,6 @@ async fn main()-> Result<(),std::io::Error> {
         .set("request.timeout.ms","1000")
         .create().unwrap();
     //Documentation available here :https://github.com/confluentinc/librdkafka/blob/master/CONFIGURATION.md
-    let stream1 = futures::stream::iter(vec![1, 2, 3]);
 
 
 
@@ -103,6 +102,10 @@ mod tests{
     use core::panic;
     use dotenv::dotenv;
     use reqwest::{Client, Response, header::USER_AGENT};
+    use log::{info,debug};
+
+
+
 
     lazy_static::lazy_static!{
         static ref USER_AGENT_NAME:String=std::env::var("USER_AGENT_NAME").expect("USER_AGENT_NAME not set");
@@ -114,6 +117,8 @@ mod tests{
 
     #[tokio::test]
     async fn test_auhentication(){
+        let _ = env_logger::try_init();
+        info!("Test : Default Reddit client wihtout credentials");
         println!("Authentication test");
         dotenv().ok();
         let url:&str="https://www.reddit.com/api/v1/access_token";

@@ -77,17 +77,49 @@ impl Me{
         let mut headers=HeaderMap::new();
         headers.insert(USER_AGENT, HeaderValue::from_str(&self.config.user_agent).unwrap());
         let subreddit_client:Client=Client::builder().default_headers(headers).build().unwrap();
-        let mut subreddit:Subreddit=Subreddit::new(subreddit_name,&subreddit_client);
+        let mut subreddit:Subreddit=Subreddit::new(subreddit_name,Some(&subreddit_client));
         subreddit.get_about().await;
         subreddit
-
     }
+}
 
-    pub async fn fetch_new_post(&self,subreddits:Vec<Subreddit>){
-        for subreddit in subreddits.iter(){
+impl Default for Me{
+    fn default() -> Self {
+        let mut headers=HeaderMap::new();
+        headers.insert(USER_AGENT, HeaderValue::from_str("useragentdefault").unwrap());
 
+        Me { 
+            config: Config::default(),
+            client: reqwest::Client::builder().default_headers(headers).build().unwrap()
         }
-
     }
+}
 
+
+
+
+
+
+#[cfg(test)]
+mod tests{
+    use crate::{config::Config, subreddit::feedoptions::FeedFilter};
+    use log::{info,debug};
+    use super::Me;
+
+
+    #[tokio::test]
+    async fn test_no_auth_reddit_client(){
+        let _ = env_logger::try_init();
+        info!("Test : Default Reddit client without credentials");
+
+        let reddit_client:Me=Me::default();
+        let rust_subreddit=reddit_client.get_subreddit(
+            "r/rust",
+            None,
+            FeedFilter::Hot
+        ).await;
+        assert_eq!(rust_subreddit.name,"r/rust");
+        assert_ne!(rust_subreddit.about.clone(),None);
+        debug!("Checking r/rust about part {}",rust_subreddit.about.unwrap());
+    }
 }
