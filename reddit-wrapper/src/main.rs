@@ -100,6 +100,7 @@ async fn main()-> Result<(),std::io::Error> {
 mod tests{
 
     use core::panic;
+    use std::env;
     use dotenv::dotenv;
     use reqwest::{Client, Response, header::USER_AGENT};
     use log::{info,debug};
@@ -118,8 +119,9 @@ mod tests{
     #[tokio::test]
     async fn test_auhentication(){
         let _ = env_logger::try_init();
-        info!("Test : Default Reddit client wihtout credentials");
+        info!("Test : Default Reddit client using credentials");
         println!("Authentication test");
+        info!(" ENV VAR {:#?}",env::var("USER_NAME"));
         dotenv().ok();
         let url:&str="https://www.reddit.com/api/v1/access_token";
         let form = [
