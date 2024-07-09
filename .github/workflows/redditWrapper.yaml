@@ -17,7 +17,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: pwd
-        run: pwd
+        run: |
+          cd ./reddit-wrapper
+          pwd
+          ls
       - name: redditwrapper build
         run: cargo build
       - name: redditwrapper test
