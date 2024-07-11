@@ -52,7 +52,7 @@ impl Subreddit{
     }
 
 
-    async fn get_feed(&self,feed_option:FeedFilter,limit:Option<i64>,feed_sort:Option<FeedSort>)->Result<FeedResponse,std::io::Error>{
+    async fn get_feed(&self,feed_option:FeedFilter,limit:Option<i64>,feed_sort:Option<FeedSort>,dest_url:&Option<String>)->Result<FeedResponse,std::io::Error>{
         let limit_string:String=match limit{
             Some(limit)=>format!("limit={}",limit),
             None=>String::from("")
@@ -61,9 +61,15 @@ impl Subreddit{
             Some(sort_option)=>format!("sort={}",sort_option.as_str()),
             None=> String::from("")
         };
+        debug!("dest_url get_feed :{:#?}",dest_url);
+        let url:&str=match dest_url{
+            Some(dest)=>&dest.to_string(),
+            None=>{
+                let dest:&str=&format!("{}/{}/.json?{}&{}",self.name,feed_option.as_str(),limit_string,sort_option_string.as_str()).to_string();
+                &buildUrl(dest).to_string()
+            }
+        };
 
-        let dest:&str=&format!("{}/{}/.json?{}&{}",self.name,feed_option.as_str(),limit_string,sort_option_string.as_str()).to_string();
-        let url:&str=&buildUrl(dest).to_string();
         debug!("Fetch url destination :{}",url);
         let response:Response= match self.client.get(url).send().await{
             Ok(value)=> value,
@@ -75,7 +81,7 @@ impl Subreddit{
     }
     
     
-    async fn send_message<S:Sink<Result<FeedResponse,StreamError<std::io::Error>>>+core::marker::Unpin>(&mut self,sleep_time:Duration,retry_strategy:String,timeout:Option<Duration>,mut sender:S)->Result<(),S::Error>{
+    async fn send_message<S:Sink<Result<FeedResponse,StreamError<std::io::Error>>>+core::marker::Unpin>(&mut self,sleep_time:Duration,retry_strategy:String,timeout:Option<Duration>,mut sender:S,dest_url:Option<String>)->Result<(),S::Error>{
         // return mpsc::SendError when there is an error sending msg to receiver
         
         loop{
@@ -85,7 +91,8 @@ impl Subreddit{
                     timeout_duration,
                     self.get_feed(FeedFilter::New,
                         None,
-                        Some(FeedSort::Latest)
+                        Some(FeedSort::Latest),
+                        &dest_url
                     ) 
                 ).await;
 
@@ -102,7 +109,8 @@ impl Subreddit{
                 match self.get_feed(
                     FeedFilter::New,
                     None,
-                    Some(FeedSort::Latest)
+                    Some(FeedSort::Latest),
+                    &dest_url
                 ).await{
                         Ok(val)=>Ok(val),
                         Err(err)=>Err(StreamError::SourceError(err))
@@ -115,11 +123,11 @@ impl Subreddit{
 
 
 
-    pub fn stream_items(&self,sleep_time:Duration,retry_strategy:String,timeout:Option<Duration>)->(impl Stream<Item=Result<FeedResponse,StreamError<std::io::Error>>>,JoinHandle<Result<(),mpsc::SendError>>){
+    pub fn stream_items(&self,sleep_time:Duration,retry_strategy:String,timeout:Option<Duration>,dest_url:Option<String>)->(impl Stream<Item=Result<FeedResponse,StreamError<std::io::Error>>>,JoinHandle<Result<(),mpsc::SendError>>){
         let (sender,receiver)=mpsc::unbounded();
         let mut owned_subreddit=self.clone();
         let fetch_post_task:JoinHandle<Result<(),mpsc::SendError>>=tokio::task::spawn(async move{
-            owned_subreddit.send_message(sleep_time, retry_strategy, timeout,sender).await
+            owned_subreddit.send_message(sleep_time, retry_strategy, timeout,sender,dest_url).await
         });
         (receiver,fetch_post_task)
 
@@ -140,15 +148,7 @@ mod tests{
     use crate::me;
     use log::{info,debug,error};
     use super::Subreddit;
-
-
-    lazy_static::lazy_static!{
-        static ref USER_AGENT_NAME:String=std::env::var("USER_AGENT_NAME").expect("USER_AGENT_NAME not set");
-        static ref CLIENT_ID:String=std::env::var("CLIENT_ID").expect("CLIENT_ID not set");
-        static ref CLIENT_SECRET:String=std::env::var("CLIENT_SECRET").expect("CLIENT_SECRET not set");
-        static ref USER_NAME:String=std::env::var("USER_NAME").expect("USER_NAME not set");
-        static ref PASSWORD:String=std::env::var("PASSWORD").expect("PASSWORD not set");
-    }
+    use mockito::{mock,Matcher};
 
 
 
@@ -157,12 +157,23 @@ mod tests{
     async fn test_get_feed(){
         let _ = env_logger::try_init();
         info!("Test :  Subreddit get_feed()");
-        dotenv().ok();
+        let mock_data:String=std::fs::read_to_string("resources/mock_data.json").unwrap();
+        let _m = mock("GET", "/r/rust/new/.json?&sort=latest/.json")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(mock_data)
+            .create();
         let rrust:Subreddit=Subreddit::new("r/rust",None);
-        info!("Stream submission");
-        let res_feed=rrust.get_feed(FeedFilter::New,None,Some(FeedSort::Latest)).await;
+        let res_feed=rrust.get_feed(
+            FeedFilter::New,
+            None,
+            Some(FeedSort::Latest),
+            &Some(
+                format!("{}/r/rust/new/.json?&sort=latest/.json", &mockito::server_url())
+            )
+        ).await;
         match res_feed{
-            Ok(_)=>info!(" Sucessivly retrivieving subreddit feed"),
+            Ok(_)=>info!("Sucessivly retrivieving subreddit feed"),
             Err(_)=>{
                 error!("Fail retrivieving the subreddit feed");
                 panic!();
@@ -176,9 +187,21 @@ mod tests{
     async fn test_stream_subreddit(){
         let _ = env_logger::try_init();
         info!("Test : Stream subreddit submissions");
-        dotenv().ok();
+        let mock_data:String=std::fs::read_to_string("resources/mock_data.json").unwrap();
+        let _m = mock("GET", "/r/rust/new/.json?&sort=latest/.json")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(mock_data)
+            .create();
+
         let rrust:Subreddit=Subreddit::new("r/rust",None);
-        let ( mut stream,_)=rrust.stream_items(Duration::new(30, 0),"Nothing".to_string(),None);
+        let ( mut stream,_)=rrust.stream_items(
+            Duration::new(30, 0),
+            "Nothing".to_string(),None,
+            Some(
+                format!("{}/r/rust/new/.json?&sort=latest/.json", &mockito::server_url())
+            )
+            );
         let post=stream.next().await;
         match post{
             Some(_)=>info!("Stream working"),

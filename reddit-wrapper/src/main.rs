@@ -54,9 +54,9 @@ async fn main()-> Result<(),std::io::Error> {
     let me:me::me::Me=reddit_client.login(&USER_NAME, &PASSWORD).await.unwrap();
     info!("{}",format!("Get subreddit: {} ","r/funny"));
     let rfunny:subreddit::subreddit::Subreddit=me.get_subreddit("r/funny",Some(1),subreddit::feedoptions::FeedFilter::Hot).await;
-    let (stream_posts_rfunny,join_handle)= rfunny.stream_items(Duration::new(10, 0),"Nothing".to_string(),None);
+    let (stream_posts_rfunny,join_handle)= rfunny.stream_items(Duration::new(10, 0),"Nothing".to_string(),None,None);
     let rrust:subreddit::subreddit::Subreddit=me.get_subreddit("r/rust",Some(1),subreddit::feedoptions::FeedFilter::Hot).await;
-    let (stream_posts_rrust,join_handle)= rrust.stream_items(Duration::new(10, 0),"Nothing".to_string(),None);
+    let (stream_posts_rrust,join_handle)= rrust.stream_items(Duration::new(10, 0),"Nothing".to_string(),None,None);
 
 
     let mut combined_stream=futures::stream::select_all(vec![stream_posts_rrust,stream_posts_rfunny]);
