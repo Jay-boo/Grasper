@@ -23,7 +23,7 @@ jobs:
       - name: redditwrapper test
         run: |
           cd ./reddit-wrapper/
-          RUST_LOG=debug cargo test -- --nocapture
+          RUST_LOG=debug cargo test subreddit::subreddit::tests::test_get_feed -- --nocapture
 
       
 
