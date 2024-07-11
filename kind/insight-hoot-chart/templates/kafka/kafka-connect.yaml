@@ -1,0 +1,152 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rss-topics-config
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+data:
+  rss_topics.json: {{ .Values.kafka.KafkaConnect.rss_json | toPrettyJson }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f dockercompose.yaml
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    io.kompose.service: kafka-connect
+  name: kafka-connect
+spec:
+  ports:
+    - name: "{{ .Values.kafka.KafkaConnect.Port }}"
+      port: {{ .Values.kafka.KafkaConnect.Port }}
+      targetPort: {{ .Values.kafka.KafkaConnect.Port }}
+  selector:
+    io.kompose.service: kafka-connect
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f dockercompose.yaml
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    io.kompose.service: kafka-connect
+  name: kafka-connect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: kafka-connect
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f dockercompose.yaml
+        kompose.version: 1.32.0 (765fde254)
+      labels:
+        io.kompose.network/komposedir-default: "true"
+        io.kompose.service: kafka-connect
+    spec:
+      initContainers:
+        - name: fetch-rss-topics
+          image: registry.k8s.io/busybox
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+          command: ["/bin/sh", "-c", "cat /etc/config/rss_topics.json"]
+      volumes:
+        - name: config-volume
+          configMap:
+            name: rss-topics-config
+      containers:
+        - args:
+            - bash
+            - -c
+            - |
+              echo "Waiting for installation to complete JAYBOO"
+              confluent-hub install --no-prompt kaliy/kafka-connect-rss:0.1.0
+              #
+              echo "Launching Kafka Connect worker"
+              /etc/confluent/docker/run & 
+              #
+              echo "Waiting for Kafka Connect to start listening on $$CONNECT_REST_ADVERTISED_HOST_NAME ⏳"
+              while [ $$(curl -s -o /dev/null -w %{http_code} http://$$CONNECT_REST_ADVERTISED_HOST_NAME:$$CONNECT_REST_PORT/connectors) -ne 200 ] ; do 
+                echo -e $$(date) " Kafka Connect listener HTTP state: " $$(curl -s -o /dev/null -w %{http_code} http://$$CONNECT_REST_ADVERTISED_HOST_NAME:$$CONNECT_REST_PORT/connectors) " (waiting for 200)"
+                sleep 5 
+              done
+              nc -vz $$CONNECT_REST_ADVERTISED_HOST_NAME $$CONNECT_REST_PORT
+              #
+              echo -e "\n--\n+> Creating RSS Sources"
+              cat /etc/config/rss_topics.json | while IFS= read -r line; do
+                  key=$(echo "$line" | awk -F '"' '{print $2}')
+                  value=$(echo "$line" | awk -F '"' '{print $4}')
+                  echo "$$key"
+                  echo "$$value"
+                  curl -i -X POST -H "Accept:application/json" \
+                      -H "Content-Type:application/json" http://localhost:{{ .Values.kafka.KafkaConnect.Port }}/connectors/ \
+                      -d '{
+                    "name": "source-rss-'"$$key"'-src",
+                    "config": {
+                      "connector.class": "org.kaliy.kafka.connect.rss.RssSourceConnector", 
+                      "topic": "topic-'"$$key"'", 
+                      "rss.urls": "'"$$value"'"
+                    }
+                  }'
+              done
+              #
+              sleep infinity
+          env:
+            - name: CLASSPATH
+              value: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.2.1.jar
+            - name: CONNECT_BOOTSTRAP_SERVERS
+              value: kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
+            - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_CONFIG_STORAGE_TOPIC
+              value: docker-connect-configs
+            - name: CONNECT_CONSUMER_INTERCEPTOR_CLASSES
+              value: io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor
+            - name: CONNECT_GROUP_ID
+              value: compose-connect-group
+            - name: CONNECT_INTERNAL_KEY_CONVERTER
+              value: org.apache.kafka.connect.json.JsonConverter
+            - name: CONNECT_INTERNAL_VALUE_CONVERTER
+              value: org.apache.kafka.connect.json.JsonConverter
+            - name: CONNECT_KEY_CONVERTER
+              value: org.apache.kafka.connect.json.JsonConverter
+            - name: CONNECT_LOG4J_LOGGERS
+              value: org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR
+            - name: CONNECT_LOG4J_ROOT_LOGLEVEL
+              value: INFO
+            - name: CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_OFFSET_STORAGE_TOPIC
+              value: docker-connect-offsets
+            - name: CONNECT_PLUGIN_PATH
+              value: /usr/share/java,/usr/share/confluent-hub-components/
+            - name: CONNECT_PRODUCER_INTERCEPTOR_CLASSES
+              value: io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor
+            - name: CONNECT_REST_ADVERTISED_HOST_NAME
+              value: kafka-connect
+            - name: CONNECT_REST_PORT
+              value: "{{ .Values.kafka.KafkaConnect.Port }}"
+            - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_STATUS_STORAGE_TOPIC
+              value: docker-connect-status
+            - name: CONNECT_VALUE_CONVERTER
+              value: org.apache.kafka.connect.json.JsonConverter
+          image: confluentinc/cp-kafka-connect:5.2.1 
+          name: kafka-connect
+          ports:
+            - containerPort: {{ .Values.kafka.KafkaConnect.Port }}
+              hostPort: {{ .Values.kafka.KafkaConnect.Port }}
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+      restartPolicy: Always
