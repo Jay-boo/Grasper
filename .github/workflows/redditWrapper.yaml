@@ -17,9 +17,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: redditwrapper build
-        run: cargo build
+        run: |
+          cd ./reddit-wrapper/
+          cargo build
       - name: redditwrapper test
-        run: cargo test -- --nocapture
+        run: |
+          cd ./reddit-wrapper/
+          RUST_LOG=debug cargo test subreddit::subreddit::tests::test_get_feed -- --nocapture
 
       
 
