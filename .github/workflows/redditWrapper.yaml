@@ -22,14 +22,8 @@ jobs:
           cargo build
       - name: redditwrapper test
         run: |
-          USER_NAME=${{secrets.USER_NAME}}
-          USER_AGENT_NAME=${{secrets.USER_AGENT_NAME}}
-          CLIENT_ID=${{secrets.CLIENT_ID}}
-          CLIENT_SECRET=${{secrets.CLIENT_SECRET}} 
-          PASSWORD=${{secrets.PASSWORD}}
-          KAFKA_HOST=${{secrets.KAFKA_HOST}}
           cd ./reddit-wrapper/
-          RUST_LOG=info cargo test -- --nocapture
+          RUST_LOG=debug cargo test -- --nocapture
 
       
 
