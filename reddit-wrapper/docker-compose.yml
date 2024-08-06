@@ -1,0 +1,66 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2182
+    ports:
+      - "2182:2182"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.0.1
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: "1"
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2182'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_INTERNAL://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+
+  init-kafka:
+    image: confluentinc/cp-kafka:7.0.1
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:29092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic r-funny --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic  r-rust --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "
+
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9092"
+      JVM_OPTS: "-Xms32M -Xmx64M"
+    depends_on:
+      - kafka
+
+  redditwrapper:
+    image: "reddit-wrapper-stream"
+    environment:
+      KAFKA_HOST: "kafka:9092"
+      CLIENT_ID: "${CLIENT_ID}"
+      CLIENT_SECRET: "${CLIENT_SECRET}"
+      USER_NAME: "${USER_NAME}"
+      PASSWORD: "${PASSWORD}"
+      USER_AGENT_NAME: "${USER_AGENT_NAME}"
+
+    build: .
+    depends_on:
+      - init-kafka
+
+
