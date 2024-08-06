@@ -1,0 +1,12 @@
+[package]
+name = "sof-wrapper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest={version="0.12.5",features=["json"]}
+log = { version = "0.4", features = ["std", "serde"] }
+env_logger = "0.11.5"
+serde = {version="1.0.204",features=["derive"]}
+tokio = { version = "1.39.2", features = ["full"] }
+
