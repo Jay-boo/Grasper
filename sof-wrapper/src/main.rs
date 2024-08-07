@@ -1,5 +1,8 @@
+use std::time::Duration;
+
 use sof_wrapper::client::stackExchangeClient::StackExchangeSimpleClient;
-use log::{info,warn, error};
+use log::{info,debug};
+use futures::StreamExt;
 
 #[tokio::main]
 async fn main() {
@@ -7,10 +10,11 @@ async fn main() {
     info!("Starting up ...");
     
     let mut sof_client=StackExchangeSimpleClient::new();
-    sof_client.fetch_all_tags().await.unwrap();
-    // match sof_client.fetch_tag_popularity("python"){
-    //     Ok(_)=>{},
-    //     Err(e)=>error!("{:?}",e)
-    // }
+    let (mut stream_tags,join_handle)=sof_client.stream(Duration::from_secs(30), Some(Duration::from_secs(10)));
+    info!("Streaming ...");
+    while let Some(items)=stream_tags.next().await{
+        
+    }
+
 }
 
