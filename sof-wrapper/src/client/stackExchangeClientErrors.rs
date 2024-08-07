@@ -1,5 +1,13 @@
 use std::fmt::{ Debug, Display};
 
+use tokio::time::error::Elapsed;
+
+
+pub enum StreamError{
+    TimeoutError(Elapsed),
+    FetchError(FetchError)
+    
+}
 
 pub struct FetchError{
     msg: String
