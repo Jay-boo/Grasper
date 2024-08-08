@@ -1,0 +1,91 @@
+name: Stack OverFlow Wrapper  
+run-name: (rust sof-wrapper) / ${{github.actor}} on ${{github.event_name}}  
+on:
+  workflow_call:
+
+  pull_request:
+    branches: 
+      - 'feature-sof-producer'
+  push:
+    branches:
+      - 'feature-sof-producer-**'
+jobs:
+
+  # reddit-wrapper-test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v4
+  #     - name: redditwrapper build
+  #       run: |
+  #         cd ./reddit-wrapper/
+  #         cargo build
+  #     - name: redditwrapper test
+  #       run: |
+  #         cd ./reddit-wrapper/
+  #         RUST_LOG=debug cargo test subreddit::subreddit::tests::test_get_feed -- --nocapture
+
+      
+
+  reddit-wrapper-deploy:
+    name: Push Docker image to Docker hub
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: jamdatafab/reddit-wrapper
+
+      - name: Determine Docker tag
+        id: tag
+        run: |
+          if ${{ !startsWith(github.event_name,'pull')}} 
+          then
+            if "${{github.ref}}"==  "refs/heads/master" 
+            then
+              echo "tag=latest" >> $GITHUB_ENV 
+            else
+              if "${{ github.ref }}" == "refs/heads/feature-sof-producer"
+              then
+                echo "tag=main" >> $GITHUB_ENV
+              else
+                BRANCH_SUFFIX=$(echo "${{ github.ref }}" | sed -e 's/^refs\/heads\/feature-sof-producer-//')
+                echo "tag=${BRANCH_SUFFIX}" >> $GITHUB_ENV 
+              fi
+            fi 
+          else
+            if ${{ endsWith(github.base_ref,'feature-sof-producer')}}  
+            then
+              echo "tag=main-pr" >> $GITHUB_ENV
+            else
+              BRANCH_SUFFIX=$(echo "${{ github.base_ref }}" | sed -e 's/feature-sof-producer-//')
+              echo "tag=${BRANCH_SUFFIX}-pr" >> $GITHUB_ENV 
+            fi 
+          fi
+            
+
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: ./reddit-wrapper
+          file: ./sof-wrapper/Dockerfile
+          push: true
+          tags: jamdatafab/sof-wrapper:${{env.tag}}
+          labels: ${{ steps.meta.outputs.labels }}
+
