@@ -3,7 +3,7 @@ use std::time::Duration;
 use log::{debug, info, warn};
 use reqwest::{Client, Response};
 use crate::client::stackExchangeClientErrors::FetchError;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use futures::{Stream, channel::mpsc, task::waker, Sink, SinkExt, TryFutureExt};
 use tokio::{task::JoinHandle, time::sleep};
 
@@ -16,7 +16,7 @@ pub struct StackExchangeSimpleClient{
     tags:Vec<SOFTag>
 }
 
-#[derive(Deserialize,Debug,Clone)]
+#[derive(Deserialize,Debug,Clone,Serialize)]
 pub struct SOFTag{
     name:String,
     count:i32,
