@@ -30,4 +30,12 @@ impl From<reqwest::Error> for FetchError{
         FetchError { msg: value.to_string()}
     }
 }
+impl Display for StreamError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StreamError::TimeoutError(e) => write!(f, "Timeout Error: {}", e),
+            StreamError::FetchError(e) => write!(f, "Fetch Error: {}", e.msg),
+        }
+    }
+}
 
