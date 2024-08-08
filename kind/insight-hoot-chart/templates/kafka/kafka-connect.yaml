@@ -67,7 +67,7 @@ spec:
             - bash
             - -c
             - |
-              echo "Waiting for installation to complete JAYBOO"
+              echo "Waiting for installation to complete "
               confluent-hub install --no-prompt kaliy/kafka-connect-rss:0.1.0
               #
               echo "Launching Kafka Connect worker"
