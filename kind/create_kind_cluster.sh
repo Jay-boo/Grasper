@@ -3,7 +3,7 @@
 cd ..
 echo "------------------------"
 echo "k8s Cluster init ..."
-kind create cluster --name insight-hoot --config ./kind/k8s_config/kind-config.yaml
+kind create cluster --name insight-hoot --config ./kind/kind-config.yaml
 
 
 
@@ -20,5 +20,5 @@ helm install my-release spark-operator/spark-operator --version 1.2.7 --namespac
 
 echo "------------------------"
 echo "Spark Application"
-kubectl apply -f ./kind/k8s_config/spark-pi.yaml
+kubectl apply -f ./kind/spark-pi.yaml
 
