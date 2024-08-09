@@ -15,10 +15,10 @@ helm install i-h ./kind/insight-hoot-chart/
 echo "------------------------"
 echo "Install  psark operator helm Chart "
 helm install my-release spark-operator/spark-operator --version 1.2.7 --namespace spark-operator --create-namespace --set webhook.enable=true --debug
-#
-#
-#
-# echo "------------------------"
-# echo "Spark Application"
+
+
+
+echo "------------------------"
+echo "Spark Application"
 kubectl apply -f ./kind/k8s_config/spark-pi.yaml
 

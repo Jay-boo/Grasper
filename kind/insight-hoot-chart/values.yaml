@@ -164,7 +164,7 @@ psql:
       requests:
         storage: 5Gi
   service:
-    name: psql-service
+    name: postgresdb
     port: 5432
   deployment:
     name: psql-deployment
