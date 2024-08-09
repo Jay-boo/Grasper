@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.psql.deployment.name }}
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{.Values.psql.labels.app}}
+spec:
+  replicas: {{.Values.replicaCount}} 
+  selector:
+    matchLabels:
+      app: {{.Values.psql.labels.app}}
+  template:
+    metadata:
+      labels:
+        app: {{.Values.psql.labels.app}} 
+    spec:
+      containers:
+        - name: {{ .Values.psql.deployment.containers.name}}
+          image: {{.Values.psql.deployment.containers.image}}
+          ports:
+            - containerPort:  {{.Values.psql.deployment.containers.containerPort}}
+          envFrom:
+            - configMapRef:
+                name: {{.Values.psql.pgConfigmap.name}}
+          volumeMounts:
+            - mountPath: /var/lib/postgres/data
+              name: db-persistent-data
+      volumes:
+        - name: db-persistent-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.psql.persistentVolumeClaim.name}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.psql.service.name }}
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{.Values.psql.labels.app}}
+spec:
+  type: NodePort
+  ports:
+    - port: {{.Values.psql.service.port}}
+  selector:
+    app: {{.Values.psql.labels.app}}

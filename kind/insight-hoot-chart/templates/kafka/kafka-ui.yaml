@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: kafka-ui-deployment
   labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
     app: kafka-ui
   # namespace: mstore
 spec:
@@ -22,7 +23,7 @@ spec:
         - name: KAFKA_CLUSTERS_0_NAME
           value: "K8 Kafka Cluster"
         - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
-          value: kafka-service:9092
+          value: kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
         imagePullPolicy: Always
         resources:
           requests:
@@ -32,18 +33,21 @@ spec:
             memory: "1024Mi"
             cpu: "1000m"
         ports:
-        - containerPort: 8080
+        - containerPort: {{ .Values.kafka.KafkaUI.Port }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: kafka-ui-service
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
 spec:
   selector:
     app: kafka-ui
   type: NodePort
   ports:
     - protocol: TCP
-      port: 8080
-      targetPort: 8080
+      port: {{ .Values.kafka.KafkaUI.Port }}
+      targetPort: {{ .Values.kafka.KafkaUI.Port }}
       nodePort: 31006
+

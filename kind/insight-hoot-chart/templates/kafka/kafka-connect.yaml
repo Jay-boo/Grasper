@@ -2,33 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: rss-topics-config
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
 data:
-  rss_topics.json: |
-    {
-      "stackoverflow": "https://stackoverflow.blog/feed",
-      "developpez": "https://cloud-computing.developpez.com/rss.php",
-      "4sysops": "https://4sysops.com/feed/",
-      "adamtheautomator": "https://adamtheautomator.com/feed/",
-      "macmule": "https://macmule.com/feed/",
-      "web3isgoinggreat": "https://www.web3isgoinggreat.com/feed",
-      "thezvi": "https://thezvi.substack.com/feed",
-      "zdnet": [
-        "https://www.zdnet.com/topic/artificial-intelligence/rss.xml",
-        "https://www.zdnet.com/topic/cloud/rss.xml",
-        "https://www.zdnet.com/topic/digital-transformation/rss.xml"
-      ],
-      "databricks": "https://www.databricks.com/feed",
-      "techtoday": "https://techtoday.co/category/tech-news/feed/",
-      "reddittech": "https://www.reddit.com/r/technology/top.rss?t=day",
-      "slashdot": "http://rss.slashdot.org/Slashdot/slashdotMain",
-      "theverge": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-      "techcrunch": "https://techcrunch.com/feed/",
-      "theguardian": "https://www.theguardian.com/us/technology/rss",
-      "arstechnica": "https://feeds.arstechnica.com/arstechnica/technology-lab",
-      "wsj": "https://feeds.a.dj.com/rss/RSSWSJD.xml",
-      "ft": "https://www.ft.com/technology?format=rss",
-      "dbta": "https://feeds.feedburner.com/DBTA-Articles"
-    }
+  rss_topics.json: {{ .Values.kafka.KafkaConnect.rss_json | toPrettyJson }}
+
 ---
 apiVersion: v1
 kind: Service
@@ -37,13 +15,14 @@ metadata:
     kompose.cmd: kompose convert -f dockercompose.yaml
     kompose.version: 1.32.0 (765fde254)
   labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
     io.kompose.service: kafka-connect
   name: kafka-connect
 spec:
   ports:
-    - name: "8083"
-      port: 8083
-      targetPort: 8083
+    - name: "{{ .Values.kafka.KafkaConnect.Port }}"
+      port: {{ .Values.kafka.KafkaConnect.Port }}
+      targetPort: {{ .Values.kafka.KafkaConnect.Port }}
   selector:
     io.kompose.service: kafka-connect
 
@@ -55,6 +34,7 @@ metadata:
     kompose.cmd: kompose convert -f dockercompose.yaml
     kompose.version: 1.32.0 (765fde254)
   labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
     io.kompose.service: kafka-connect
   name: kafka-connect
 spec:
@@ -87,7 +67,7 @@ spec:
             - bash
             - -c
             - |
-              echo "Waiting for installation to complete JAYBOO"
+              echo "Waiting for installation to complete "
               confluent-hub install --no-prompt kaliy/kafka-connect-rss:0.1.0
               #
               echo "Launching Kafka Connect worker"
@@ -107,7 +87,7 @@ spec:
                   echo "$$key"
                   echo "$$value"
                   curl -i -X POST -H "Accept:application/json" \
-                      -H "Content-Type:application/json" http://localhost:8083/connectors/ \
+                      -H "Content-Type:application/json" http://localhost:{{ .Values.kafka.KafkaConnect.Port }}/connectors/ \
                       -d '{
                     "name": "source-rss-'"$$key"'-src",
                     "config": {
@@ -123,7 +103,7 @@ spec:
             - name: CLASSPATH
               value: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.2.1.jar
             - name: CONNECT_BOOTSTRAP_SERVERS
-              value: kafka-service:9092
+              value: kafka-service:{{ .Values.kafka.Kafka.ContainerPort }}
             - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
               value: "1"
             - name: CONNECT_CONFIG_STORAGE_TOPIC
@@ -153,7 +133,7 @@ spec:
             - name: CONNECT_REST_ADVERTISED_HOST_NAME
               value: kafka-connect
             - name: CONNECT_REST_PORT
-              value: "8083"
+              value: "{{ .Values.kafka.KafkaConnect.Port }}"
             - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
               value: "1"
             - name: CONNECT_STATUS_STORAGE_TOPIC
@@ -163,8 +143,8 @@ spec:
           image: confluentinc/cp-kafka-connect:5.2.1 
           name: kafka-connect
           ports:
-            - containerPort: 8083
-              hostPort: 8083
+            - containerPort: {{ .Values.kafka.KafkaConnect.Port }}
+              hostPort: {{ .Values.kafka.KafkaConnect.Port }}
               protocol: TCP
           volumeMounts:
             - name: config-volume

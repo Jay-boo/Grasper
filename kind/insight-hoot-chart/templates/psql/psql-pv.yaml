@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.psql.persistentVolume.name}}
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{.Values.psql.labels.app}}
+
+spec:
+  capacity:
+    storage: {{.Values.psql.persistentVolume.spec.capacity.storage}}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{.Values.psql.persistentVolumeClaim.name}}
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{.Values.psql.labels.app}}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{.Values.psql.persistentVolumeClaim.resources.requests.storage}}

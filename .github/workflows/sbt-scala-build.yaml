@@ -47,12 +47,18 @@ jobs:
         with:
           name: InsightHootJar
           path: ./jars/InsightHootKafka-3.5.1-8-2.12.jar
+          retention-days: 1
 
       - name: List dependencies
         run: |
           cd InsightHoot
           sbt '++ ${{ matrix.scala }}' libraryDependencies
         
+
+
+
+
+
 
 
   create-cluster:
@@ -93,24 +99,22 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1
         with:
-          config: ./kind/k8s_config/kind-config.yaml
+          config: ./kind/kind-config.yaml
 
-      - name: Setup Kafka
+      - name: Helm  Install insight-hoot-chart
         run: |
-          kubectl apply -f  kind/k8s_config/kafka
-      - name: Setup Psql
-        run: |
-          kubectl apply -f  kind/k8s_config/psql
-      - name: Helm install
+          helm install i-h ./kind/insight-hoot-chart/
+          sleep 70
+      - name: Helm install spark-operator
         run: |
           helm repo add spark-operator https://kubeflow.github.io/spark-operator
           helm install my-release spark-operator/spark-operator --version 1.2.7 --namespace spark-operator --create-namespace --set webhook.enable=true --debug
           sleep 70
 
 
-      - name: Spark Operator
+      - name: Launch spark application
         run: |
-          kubectl apply -f  kind/k8s_config/spark-pi.yaml
+          kubectl apply -f  kind/spark-pi.yaml
           
           sleep 30
 
@@ -124,7 +128,7 @@ jobs:
           kubectl logs -n spark-operator spark-pi-driver
       - name: Get logs spark application driver
         run: |
-          sleep 50
+          sleep 100
           kubectl logs -n spark-operator spark-pi-driver
 
       - name: Check Spark Application status
@@ -145,3 +149,8 @@ jobs:
               sleep 10
             fi
           done
+      - name: Clean artifact
+        uses: geekyeggo/delete-artifact@v5
+        with:
+            name: InsightHootJar
+
