@@ -27,7 +27,7 @@ jobs:
 
       
 
-  reddit-wrapper-deploy:
+  sof-producer-deploy:
     name: Push Docker image to Docker hub
     runs-on: ubuntu-latest
     permissions:
@@ -48,7 +48,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: jamdatafab/reddit-wrapper
+          images: jamdatafab/sof-wrapper
 
       - name: Determine Docker tag
         id: tag
@@ -83,7 +83,7 @@ jobs:
         id: push
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
-          context: ./reddit-wrapper
+          context: ./sof-wrapper
           file: ./sof-wrapper/Dockerfile
           push: true
           tags: jamdatafab/sof-wrapper:${{env.tag}}

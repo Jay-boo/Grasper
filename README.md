@@ -79,4 +79,4 @@ The project is built for deployment on a Kubernetes cluster, meaning you can run
   <img src="https://contrib.rocks/image?repo=Jay-boo/InsightHoot" />
 </a>
 
-
+---

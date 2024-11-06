@@ -13,9 +13,8 @@ echo "------------------------"
 echo "Install  Insight-hoot helm Chart "
 helm install i-h ./kind/insight-hoot-chart/
 echo "------------------------"
-echo "Install  psark operator helm Chart "
+echo "Install  spark operator helm Chart "
 helm install my-release spark-operator/spark-operator --version 1.2.7 --namespace spark-operator --create-namespace --set webhook.enable=true --debug
-
 
 
 echo "------------------------"
