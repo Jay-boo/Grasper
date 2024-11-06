@@ -172,7 +172,8 @@ psql:
       name: psql-container
       image: postgres
       containerPort: 5432
-    
+
+
  sof:
   labels:
     app: sof
