@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.sof.deployment.name }}
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{ .Values.sof.labels.app }}
+spec:
+  replicas: {{.Values.replicaCount}}
+  selector:
+    matchLabels:
+      app: {{.Values.sof.labels.app}}
+  template:
+    metadata:
+      labels:
+        app: sof-wrapper
+    spec:
+      containers:
+        - name: {{ .Values.sof.deployment.containers.name}}
+          image: {{ .Values.sof.deployment.containers.image }}:{{.Values.sof.deployment.containers.tag}}
+          imagePullPolicy: Always
+          env:
+            - name: KAFKA_HOST
+              value: kafka-service:{{.Values.kafka.Kafka.ContainerPort}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.sof.service.name}}
+  labels:
+    {{- include "insight-hoot-chart.labels" . | nindent 4 }}
+    app: {{.Values.sof.service.name}}
+spec:
+  selector:
+    app: {{ .Values.sof.labels.app}}
+  ports:
+    ports:
+    - port: 80 #port that the service exposes
+      targetPort: 8000 #port that the app is receiving requests from via the pod

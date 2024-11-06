@@ -173,4 +173,17 @@ psql:
       image: postgres
       containerPort: 5432
     
-    
+ sof:
+  labels:
+    app: sof
+  service:
+    name: sof
+    port: 5432
+  deployment:
+    name: sof-deployment
+    containers:
+      name: sof-container
+      image: jamdatafab/sof-wrapper
+      tag: latest
+      containerPort: 5432
+       
