@@ -31,8 +31,9 @@ metadata:
     {{- include "insight-hoot-chart.labels" . | nindent 4 }}
     app: {{.Values.sof.service.name}}
 spec:
+  type: LoadBalancer
   selector:
-    app: {{ .Values.sof.labels.app}}
+    name: {{ .Values.sof.labels.app}}
   ports:
     ports:
     - port: 80 #port that the service exposes
