@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       labels:
-        app: sof-wrapper
+        app: {{.Values.sof.labels.app}}
     spec:
       containers:
         - name: {{ .Values.sof.deployment.containers.name}}
@@ -35,6 +35,5 @@ spec:
   selector:
     name: {{ .Values.sof.labels.app}}
   ports:
-    ports:
     - port: 80 #port that the service exposes
       targetPort: 8000 #port that the app is receiving requests from via the pod
