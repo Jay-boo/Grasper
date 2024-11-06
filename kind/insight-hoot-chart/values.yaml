@@ -174,7 +174,7 @@ psql:
       containerPort: 5432
 
 
- sof:
+sof:
   labels:
     app: sof
   service:
