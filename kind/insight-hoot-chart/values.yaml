@@ -186,4 +186,3 @@ psql:
       image: jamdatafab/sof-wrapper
       tag: latest
       containerPort: 5432
-       
