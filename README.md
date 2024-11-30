@@ -1,5 +1,6 @@
+<!--
 <img src="https://github.com/Jay-boo/InsightHoot/blob/feature-dashboard/Dashboard/dashboard/dashboard/static/insighthootlogo.png" alt="Size Limit CLI" width="100" align="right">
-
+-->
 # Grasper
 
 [![GitHub Issues](https://img.shields.io/github/issues/Jay-boo/InsightHoot.svg?style=flat-square&label=Issues&color=d77982)](https://github.com/Jay-boo/InsightHoot/issues)
